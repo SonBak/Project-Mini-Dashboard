@@ -89,26 +89,53 @@ const getWeather = async (
 const getNews = async (): Promise<any[]> => {
   try {
     const response = await fetch(
-      `https://hacker-news.firebaseio.com/v0/topstories.json`
+      "https://hacker-news.firebaseio.com/v0/topstories.json"
     );
     if (!response.ok)
-      throw new Error(`Error fetching hacker news: ${response.status}`);
+      throw new Error(
+        `Error fetching news data: ${response.status} ${response.statusText}`
+      );
     const storyIds: number[] = await response.json();
-    const stories = await Promise.all(
-      storyIds.slice(0, 3).map(async (id) => {
-        const result = await fetch(
-          `https://hacker-news.firebaseio.com/v0/item/${id}.json`
-        );
-        return await result.json();
-      })
-    );
-    return stories;
+    const topStoryIds = storyIds.slice(0, 5).map(async (id) => {
+      const storyResponse = await fetch(
+        `https://hacker-news.firebaseio.com/v0/item/${id}.json`
+      );
+      return await storyResponse.json();
+    });
+    return topStoryIds;
   } catch (error) {
-    console.error("API Error:");
+    console.error(error);
     console.dir(error, { depth: null });
     return [];
   }
 };
+
+// Function to suggest tasks based on weather conditions
+function suggestTasks(weather: {
+  temperature: number | null;
+  precipitation: number | null;
+}): string[] {
+  if (weather.temperature === null || weather.precipitation === null)
+    return ["No weather data available"];
+
+  const suggestions: string[] = [];
+  const celsius = weather.temperature;
+  const mm = weather.precipitation;
+
+  if (celsius > 20 && mm < 1) {
+    suggestions.push("Go for a walk");
+    suggestions.push("Have a picnic");
+  } else if (celsius <= 20 && mm < 1) {
+    suggestions.push("Visit a museum");
+    suggestions.push("Go to a cafe");
+  } else if (mm >= 1) {
+    suggestions.push("Stay indoors and read a book");
+    suggestions.push("Watch a movie");
+  } else {
+    suggestions.push("Check your other tasks and pick one!");
+  }
+  return suggestions;
+}
 
 addTask({ id: 1, task: "Learn TypeScript", completed: false });
 addTask({ id: 2, task: "Build a project", completed: false });
