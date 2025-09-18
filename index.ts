@@ -15,6 +15,7 @@ function addTask(task: Task): void {
 
 // Function to list all tasks
 function listTasks(): void {
+  // If array is empty there are no tasks to list
   if (tasks.length === 0) {
     console.log("No tasks available.");
     return;
@@ -96,6 +97,7 @@ const getNews = async (): Promise<any[]> => {
         `Error fetching news data: ${response.status} ${response.statusText}`
       );
     const storyIds: number[] = await response.json();
+    // Fetch details for the top 3 stories
     const topStoryIds = storyIds.slice(0, 3).map(async (id) => {
       const storyResponse = await fetch(
         `https://hacker-news.firebaseio.com/v0/item/${id}.json`
@@ -122,10 +124,11 @@ function suggestTasks(weather: {
   const celsius = weather.temperature;
   const mm = weather.precipitation;
 
-  if (celsius > 20 && mm < 1) {
+  // Simple logic for suggestions based on temperature and precipitation
+  if (celsius > 15 && mm < 1) {
     suggestions.push("Go for a walk");
     suggestions.push("Have a picnic");
-  } else if (celsius <= 20 && mm < 1) {
+  } else if (celsius <= 15 && mm < 1) {
     suggestions.push("Visit a museum");
     suggestions.push("Go to a cafe");
   } else if (mm >= 1) {
@@ -137,27 +140,41 @@ function suggestTasks(weather: {
   return suggestions;
 }
 
+// Utility function to create a delay in logging
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 // Dashboard to display weather, news, and task suggestions
 const displayDashboard = async () => {
+  console.log("==================================================");
   console.log("============= Task Manager Dashboard =============");
+  console.log("==================================================");
   console.log("Tasks:");
-  console.dir(listTasks(), { depth: null });
+  listTasks();
 
+  await delay(2000);
   console.log("\nUpdating Task with ID 2:");
   const updated = updateTask(2, { completed: true });
+  await delay(1000);
   if (updated) {
     console.log("Updated Task:", updated);
   } else {
     console.log("Task not found.");
   }
 
+  await delay(2000);
   console.log("\nDeleting Task with ID 1:");
   const deleted = deleteTask(1);
+  await delay(1000);
   console.log(deleted ? "Task deleted." : "Task not found.");
 
+  await delay(1000);
   console.log("\nAll Tasks after update and delete:");
   listTasks();
+  console.log("==================================================");
 
+  await delay(2000);
   const weather = await getWeather(59.3294, 18.0687); // Stockholm coordinates
   console.log("\nCurrent Weather in Stockholm:");
   if (weather.temperature !== null && weather.precipitation !== null) {
@@ -166,28 +183,32 @@ const displayDashboard = async () => {
     );
   } else {
     console.log("Weather data not available.");
+    console.log("==================================================");
   }
   // Suggest tasks based on weather
   const suggestions = suggestTasks(weather);
-  console.log("\nTask Suggestions based on Weather:");
+  console.log("\nTask Suggestions based on the current weather:");
   suggestions.forEach((suggestion) => console.log(`- ${suggestion}`));
+  console.log("==================================================");
   // Fetch and display news
+  await delay(2000);
   const news = await getNews();
-  console.log("\nTop Hacker News Stories:");
-  news.forEach((storyPromise) => {
-    storyPromise.then((story: any) => {
-      if (story) {
-        console.log(`- ${story.title} (URL: ${story.url})`);
-      } else {
-        console.log("Story data not available.");
-      }
-    });
+  console.log("\nTop Hacker News stories for you to read:");
+  const stories = await Promise.all(news);
+  stories.forEach((story: any) => {
+    if (story) {
+      console.log(`- ${story.title} (URL: ${story.url})`);
+    } else {
+      console.log("News stories data not available.");
+    }
   });
   console.log("==================================================");
 };
 
-addTask({ id: 1, task: "Learn TypeScript", completed: false });
-addTask({ id: 2, task: "Build a project", completed: false });
-addTask({ id: 3, task: "Review code", completed: true });
+// Tasks for demonstration
+addTask({ id: 1, task: "Learn more about GitHub", completed: true });
+addTask({ id: 2, task: "Build the project", completed: false });
+addTask({ id: 3, task: "Presentation of project", completed: false });
 
+// Display the dashboard with all the information
 displayDashboard();
