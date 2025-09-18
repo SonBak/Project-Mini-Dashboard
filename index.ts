@@ -96,7 +96,7 @@ const getNews = async (): Promise<any[]> => {
         `Error fetching news data: ${response.status} ${response.statusText}`
       );
     const storyIds: number[] = await response.json();
-    const topStoryIds = storyIds.slice(0, 5).map(async (id) => {
+    const topStoryIds = storyIds.slice(0, 3).map(async (id) => {
       const storyResponse = await fetch(
         `https://hacker-news.firebaseio.com/v0/item/${id}.json`
       );
@@ -137,24 +137,57 @@ function suggestTasks(weather: {
   return suggestions;
 }
 
+// Dashboard to display weather, news, and task suggestions
+const displayDashboard = async () => {
+  console.log("============= Task Manager Dashboard =============");
+  console.log("Tasks:");
+  console.dir(listTasks(), { depth: null });
+
+  console.log("\nUpdating Task with ID 2:");
+  const updated = updateTask(2, { completed: true });
+  if (updated) {
+    console.log("Updated Task:", updated);
+  } else {
+    console.log("Task not found.");
+  }
+
+  console.log("\nDeleting Task with ID 1:");
+  const deleted = deleteTask(1);
+  console.log(deleted ? "Task deleted." : "Task not found.");
+
+  console.log("\nAll Tasks after update and delete:");
+  listTasks();
+
+  const weather = await getWeather(59.3294, 18.0687); // Stockholm coordinates
+  console.log("\nCurrent Weather in Stockholm:");
+  if (weather.temperature !== null && weather.precipitation !== null) {
+    console.log(
+      `Temperature: ${weather.temperature}°C, Precipitation: ${weather.precipitation} mm`
+    );
+  } else {
+    console.log("Weather data not available.");
+  }
+  // Suggest tasks based on weather
+  const suggestions = suggestTasks(weather);
+  console.log("\nTask Suggestions based on Weather:");
+  suggestions.forEach((suggestion) => console.log(`- ${suggestion}`));
+  // Fetch and display news
+  const news = await getNews();
+  console.log("\nTop Hacker News Stories:");
+  news.forEach((storyPromise) => {
+    storyPromise.then((story: any) => {
+      if (story) {
+        console.log(`- ${story.title} (URL: ${story.url})`);
+      } else {
+        console.log("Story data not available.");
+      }
+    });
+  });
+  console.log("==================================================");
+};
+
 addTask({ id: 1, task: "Learn TypeScript", completed: false });
 addTask({ id: 2, task: "Build a project", completed: false });
 addTask({ id: 3, task: "Review code", completed: true });
 
-console.log("All Tasks:");
-listTasks();
-
-console.log("\nUpdating Task with ID 2:");
-const updated = updateTask(2, { completed: true });
-if (updated) {
-  console.log("Updated Task:", updated);
-} else {
-  console.log("Task not found.");
-}
-
-console.log("\nDeleting Task with ID 1:");
-const deleted = deleteTask(1);
-console.log(deleted ? "Task deleted." : "Task not found.");
-
-console.log("\nAll Tasks after update and delete:");
-listTasks();
+displayDashboard();
