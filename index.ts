@@ -85,6 +85,31 @@ const getWeather = async (
   }
 };
 
+// Function to fetch current hacker news from a public API
+const getNews = async (): Promise<any[]> => {
+  try {
+    const response = await fetch(
+      `https://hacker-news.firebaseio.com/v0/topstories.json`
+    );
+    if (!response.ok)
+      throw new Error(`Error fetching hacker news: ${response.status}`);
+    const storyIds: number[] = await response.json();
+    const stories = await Promise.all(
+      storyIds.slice(0, 3).map(async (id) => {
+        const result = await fetch(
+          `https://hacker-news.firebaseio.com/v0/item/${id}.json`
+        );
+        return await result.json();
+      })
+    );
+    return stories;
+  } catch (error) {
+    console.error("API Error:");
+    console.dir(error, { depth: null });
+    return [];
+  }
+};
+
 addTask({ id: 1, task: "Learn TypeScript", completed: false });
 addTask({ id: 2, task: "Build a project", completed: false });
 addTask({ id: 3, task: "Review code", completed: true });
