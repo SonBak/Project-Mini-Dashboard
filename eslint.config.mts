@@ -13,4 +13,11 @@ export default defineConfig([
   },
   tseslint.configs.recommended,
   eslintPluginPrettier,
+  {
+    rules: {
+      "@typescript-elsint/no-unused-vars": "warn",
+      "arrow-body-style": ["error", "always"],
+      "capitalized-comments": ["error", "always"],
+    },
+  },
 ]);
