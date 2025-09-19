@@ -161,7 +161,7 @@ const delay = (ms: number): Promise<void> => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-// Dashboard to display weather, news, and task suggestions
+// Dashboard to display tasks, weather, news, and task suggestions
 const displayDashboard = async () => {
   console.log("==================================================");
   console.log("============= Task Manager Dashboard =============");
